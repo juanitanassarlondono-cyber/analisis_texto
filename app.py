@@ -11,17 +11,170 @@ st.set_page_config(
     layout="wide"
 )
 
-# Título y descripción
-st.title("📝 Analizador de Texto con TextBlob")
+# Estilos visuales
 st.markdown("""
-Esta aplicación utiliza TextBlob para realizar un análisis básico de texto:
-- Análisis de sentimiento y subjetividad
-- Extracción de palabras clave
-- Análisis de frecuencia de palabras
-""")
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+.stApp {
+    background:
+        radial-gradient(circle at top left, rgba(0,217,255,0.18), transparent 35%),
+        linear-gradient(135deg, #07111F 0%, #0B1728 45%, #06101D 100%);
+    color: #EAF7FF;
+}
+
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #071827 0%, #08111F 100%);
+    border-right: 1px solid rgba(0,217,255,0.18);
+}
+
+[data-testid="stSidebar"] * {
+    color: #EAF7FF;
+}
+
+.main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(90deg, #00D9FF, #0099FF, #7DEBFF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.6rem;
+}
+
+.hero-card {
+    padding: 2rem;
+    border-radius: 28px;
+    background: rgba(9, 23, 40, 0.82);
+    border: 1px solid rgba(0,217,255,0.22);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+    margin-bottom: 1.5rem;
+}
+
+.feature-card {
+    padding: 1.1rem 1.25rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(0,217,255,0.16);
+    min-height: 115px;
+}
+
+.metric-card {
+    padding: 1.2rem;
+    border-radius: 22px;
+    background: rgba(8, 20, 36, 0.9);
+    border: 1px solid rgba(0,217,255,0.18);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.20);
+}
+
+h1, h2, h3 {
+    color: #EAF7FF !important;
+    font-weight: 800 !important;
+}
+
+p, li, label, span {
+    color: #C9E8F6;
+}
+
+.stButton > button {
+    width: 100%;
+    border: none;
+    border-radius: 16px;
+    padding: 0.8rem 1.2rem;
+    background: linear-gradient(90deg, #00D9FF, #0099FF);
+    color: #03111F;
+    font-weight: 800;
+    box-shadow: 0 12px 35px rgba(0,153,255,0.35);
+    transition: all 0.25s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 45px rgba(0,217,255,0.45);
+    filter: brightness(1.08);
+}
+
+textarea, input {
+    border-radius: 16px !important;
+}
+
+[data-testid="stTextArea"] textarea {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(0,217,255,0.22);
+    color: #EAF7FF;
+}
+
+[data-testid="stFileUploader"] {
+    padding: 1rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.045);
+    border: 1px dashed rgba(0,217,255,0.32);
+}
+
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(0,217,255,0.14);
+    border-radius: 18px;
+}
+
+hr {
+    border-color: rgba(0,217,255,0.18);
+}
+
+.footer {
+    text-align: center;
+    color: #9FDFF2;
+    padding: 1rem;
+    opacity: 0.9;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Encabezado principal
+st.markdown("""
+<div class="hero-card">
+    <div class="main-title">📝 Analizador de Texto con TextBlob</div>
+    <p style="font-size:1.1rem; max-width:900px;">
+        Analiza textos en español con traducción automática al inglés para evaluar sentimiento,
+        subjetividad, frases detectadas y frecuencia de palabras.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+col_a, col_b, col_c = st.columns(3)
+
+with col_a:
+    st.markdown("""
+    <div class="feature-card">
+        <h4>📈 Sentimiento</h4>
+        <p>Clasifica el tono del texto como positivo, negativo o neutral.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_b:
+    st.markdown("""
+    <div class="feature-card">
+        <h4>💭 Subjetividad</h4>
+        <p>Detecta qué tan objetivo o subjetivo es el contenido analizado.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_c:
+    st.markdown("""
+    <div class="feature-card">
+        <h4>🔎 Palabras clave</h4>
+        <p>Identifica las palabras más frecuentes eliminando palabras vacías.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Barra lateral
-st.sidebar.title("Opciones")
+st.sidebar.title("⚙️ Opciones")
+st.sidebar.markdown("Configura la forma en que quieres ingresar el texto.")
+
 modo = st.sidebar.selectbox(
     "Selecciona el modo de entrada:",
     ["Texto directo", "Archivo de texto"]
@@ -29,7 +182,6 @@ modo = st.sidebar.selectbox(
 
 # Función para contar palabras sin depender de NLTK
 def contar_palabras(texto):
-    # Lista básica de palabras vacías en español e inglés
     stop_words = set([
         "a", "al", "algo", "algunas", "algunos", "ante", "antes", "como", "con", "contra",
         "cual", "cuando", "de", "del", "desde", "donde", "durante", "e", "el", "ella",
@@ -45,8 +197,7 @@ def contar_palabras(texto):
         "tiene", "tienen", "todo", "todos", "tu", "tus", "tuya", "tuyas", "tuyo", "tuyos", 
         "tú", "un", "una", "uno", "unos", "vosotras", "vosotros", "vuestra", "vuestras", 
         "vuestro", "vuestros", "y", "ya", "yo",
-        # Inglés
-        "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", 
+        "about", "above", "after", "again", "against", "all", "am", "an", "and", 
         "any", "are", "aren't", "as", "at", "be", "because", "been", "before", "being", 
         "below", "between", "both", "but", "by", "can't", "cannot", "could", "couldn't", 
         "did", "didn't", "do", "does", "doesn't", "doing", "don't", "down", "during", 
@@ -54,32 +205,29 @@ def contar_palabras(texto):
         "haven't", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", 
         "hers", "herself", "him", "himself", "his", "how", "how's", "i", "i'd", "i'll", 
         "i'm", "i've", "if", "in", "into", "is", "isn't", "it", "it's", "its", "itself", 
-        "let's", "me", "more", "most", "mustn't", "my", "myself", "no", "nor", "not", 
-        "of", "off", "on", "once", "only", "or", "other", "ought", "our", "ours", 
-        "ourselves", "out", "over", "own", "same", "shan't", "she", "she'd", "she'll", 
-        "she's", "should", "shouldn't", "so", "some", "such", "than", "that", "that's", 
-        "the", "their", "theirs", "them", "themselves", "then", "there", "there's", 
-        "these", "they", "they'd", "they'll", "they're", "they've", "this", "those", 
-        "through", "to", "too", "under", "until", "up", "very", "was", "wasn't", "we", 
-        "we'd", "we'll", "we're", "we've", "were",         "weren't", "what", "what's", "when", 
-        "when's", "where", "where's", "which", "while", "who", "who's", "whom", "why", 
-        "why's", "with", "would", "wouldn't", "you", "you'd", "you'll", "you're", "you've",
+        "let's", "more", "most", "mustn't", "my", "myself", "nor", "of", "off", "on",
+        "once", "only", "other", "ought", "our", "ours", "ourselves", "out", "over",
+        "own", "same", "shan't", "she", "she'd", "she'll", "she's", "should",
+        "shouldn't", "so", "some", "such", "than", "that", "that's", "the", "their",
+        "theirs", "them", "themselves", "then", "there", "there's", "these", "they",
+        "they'd", "they'll", "they're", "they've", "this", "those", "through", "to",
+        "too", "under", "until", "up", "very", "was", "wasn't", "we", "we'd", "we'll",
+        "we're", "we've", "were", "weren't", "what", "what's", "when", "when's",
+        "where", "where's", "which", "while", "who", "who's", "whom", "why", "why's",
+        "with", "would", "wouldn't", "you", "you'd", "you'll", "you're", "you've",
         "your", "yours", "yourself", "yourselves"
     ])
     
-    # Limpiar y tokenizar texto
     palabras = re.findall(r'\b\w+\b', texto.lower())
+    palabras_filtradas = [
+        palabra for palabra in palabras
+        if palabra not in stop_words and len(palabra) > 2
+    ]
     
-    # Filtrar palabras vacías y contar frecuencias
-    palabras_filtradas = [palabra for palabra in palabras 
-                         if palabra not in stop_words and len(palabra) > 2]
-    
-    # Contar frecuencias
     contador = {}
     for palabra in palabras_filtradas:
         contador[palabra] = contador.get(palabra, 0) + 1
     
-    # Ordenar por frecuencia
     contador_ordenado = dict(sorted(contador.items(), key=lambda x: x[1], reverse=True))
     
     return contador_ordenado, palabras_filtradas
@@ -94,30 +242,27 @@ def traducir_texto(texto):
         return traduccion.text
     except Exception as e:
         st.error(f"Error al traducir: {e}")
-        return texto  # Devolver el texto original si falla la traducción
+        return texto
 
-# Función para procesar el texto con TextBlob (versión con traducción)
+# Función para procesar el texto con TextBlob
 def procesar_texto(texto):
-    # Guardar el texto original
     texto_original = texto
-    
-    # Traducir el texto al inglés para mejor análisis
     texto_ingles = traducir_texto(texto)
-    
-    # Analizar el texto traducido con TextBlob
     blob = TextBlob(texto_ingles)
     
-    # Análisis de sentimiento (esto no requiere corpus adicionales)
     sentimiento = blob.sentiment.polarity
     subjetividad = blob.sentiment.subjectivity
     
-    # Extraer frases de manera simplificada (del texto original)
-    frases_originales = [frase.strip() for frase in re.split(r'[.!?]+', texto_original) if frase.strip()]
+    frases_originales = [
+        frase.strip() for frase in re.split(r'[.!?]+', texto_original)
+        if frase.strip()
+    ]
     
-    # Extraer frases del texto traducido
-    frases_traducidas = [frase.strip() for frase in re.split(r'[.!?]+', texto_ingles) if frase.strip()]
+    frases_traducidas = [
+        frase.strip() for frase in re.split(r'[.!?]+', texto_ingles)
+        if frase.strip()
+    ]
     
-    # Combinar frases originales y traducidas
     frases_combinadas = []
     for i in range(min(len(frases_originales), len(frases_traducidas))):
         frases_combinadas.append({
@@ -125,7 +270,6 @@ def procesar_texto(texto):
             "traducido": frases_traducidas[i]
         })
     
-    # Contar palabras con nuestra función simplificada (en el texto traducido)
     contador_palabras, palabras = contar_palabras(texto_ingles)
     
     return {
@@ -138,16 +282,16 @@ def procesar_texto(texto):
         "texto_traducido": texto_ingles
     }
 
-# Función para crear visualizaciones usando componentes nativos de Streamlit
+# Función para crear visualizaciones
 def crear_visualizaciones(resultados):
+    st.markdown("## 📊 Resultados del análisis")
+    
     col1, col2 = st.columns(2)
     
-    # Visualización de sentimiento y subjetividad con barras de progreso de Streamlit
     with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.subheader("Análisis de Sentimiento y Subjetividad")
         
-        # Normalizar valores para mostrarlos en barras de progreso
-        # Sentimiento va de -1 a 1, lo normalizamos a 0-1 para la barra
         sentimiento_norm = (resultados["sentimiento"] + 1) / 2
         
         st.write("**Sentimiento:**")
@@ -160,7 +304,6 @@ def crear_visualizaciones(resultados):
         else:
             st.info(f"📊 Neutral ({resultados['sentimiento']:.2f})")
         
-        # Subjetividad ya está en el rango 0-1
         st.write("**Subjetividad:**")
         st.progress(resultados["subjetividad"])
         
@@ -168,27 +311,33 @@ def crear_visualizaciones(resultados):
             st.warning(f"💭 Alta subjetividad ({resultados['subjetividad']:.2f})")
         else:
             st.info(f"📋 Baja subjetividad ({resultados['subjetividad']:.2f})")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Palabras más frecuentes usando chart de Streamlit
     with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.subheader("Palabras más frecuentes")
         if resultados["contador_palabras"]:
             palabras_top = dict(list(resultados["contador_palabras"].items())[:10])
             st.bar_chart(palabras_top)
+        else:
+            st.info("No se encontraron palabras relevantes.")
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Mostrar texto traducido
-    st.subheader("Texto Traducido")
+    st.markdown("## 🌐 Texto traducido")
     with st.expander("Ver traducción completa"):
         col1, col2 = st.columns(2)
+        
         with col1:
             st.markdown("**Texto Original (Español):**")
             st.text(resultados["texto_original"])
+        
         with col2:
             st.markdown("**Texto Traducido (Inglés):**")
             st.text(resultados["texto_traducido"])
     
-    # Análisis de frases
-    st.subheader("Frases detectadas")
+    st.markdown("## 🧩 Frases detectadas")
+    
     if resultados["frases"]:
         for i, frase_dict in enumerate(resultados["frases"][:10], 1):
             frase_original = frase_dict["original"]
@@ -216,9 +365,15 @@ def crear_visualizaciones(resultados):
         st.write("No se detectaron frases.")
 
 # Lógica principal según el modo seleccionado
+st.markdown("## ✍️ Entrada de texto")
+
 if modo == "Texto directo":
-    st.subheader("Ingresa tu texto para analizar")
-    texto = st.text_area("", height=200, placeholder="Escribe o pega aquí el texto que deseas analizar...")
+    st.subheader("Escribe o pega tu texto")
+    texto = st.text_area(
+        "",
+        height=220,
+        placeholder="Escribe o pega aquí el texto que deseas analizar..."
+    )
     
     if st.button("Analizar texto"):
         if texto.strip():
@@ -235,6 +390,7 @@ elif modo == "Archivo de texto":
     if archivo is not None:
         try:
             contenido = archivo.getvalue().decode("utf-8")
+            
             with st.expander("Ver contenido del archivo"):
                 st.text(contenido[:1000] + ("..." if len(contenido) > 1000 else ""))
             
@@ -242,6 +398,7 @@ elif modo == "Archivo de texto":
                 with st.spinner("Analizando archivo..."):
                     resultados = procesar_texto(contenido)
                     crear_visualizaciones(resultados)
+        
         except Exception as e:
             st.error(f"Error al procesar el archivo: {e}")
 
@@ -250,19 +407,24 @@ with st.expander("📚 Información sobre el análisis"):
     st.markdown("""
     ### Sobre el análisis de texto
     
-    - **Sentimiento**: Varía de -1 (muy negativo) a 1 (muy positivo)
-    - **Subjetividad**: Varía de 0 (muy objetivo) a 1 (muy subjetivo)
+    - **Sentimiento**: varía de -1, muy negativo, a 1, muy positivo.
+    - **Subjetividad**: varía de 0, muy objetivo, a 1, muy subjetivo.
     
     ### Requisitos mínimos
     
-    Esta aplicación utiliza únicamente:
-    ```
+    Esta aplicación utiliza:
+    
+    ```txt
     streamlit
     textblob
     pandas
+    googletrans
     ```
     """)
 
 # Pie de página
 st.markdown("---")
-st.markdown("Desarrollado con ❤️ usando Streamlit y TextBlob")
+st.markdown(
+    '<div class="footer">Desarrollado con ❤️ usando Streamlit y TextBlob</div>',
+    unsafe_allow_html=True
+)
